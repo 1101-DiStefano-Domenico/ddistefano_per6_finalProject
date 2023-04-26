@@ -138,6 +138,7 @@ class Game:
                     self.playing = False
                     self.timestopamount = 0
                     self.teleport = False
+                    self.timeelapsed = 0
                     self.mob1.enemyspeed = 0.05
                     self.money = 0
                     self.lifestealamount = 1
@@ -188,8 +189,8 @@ class Game:
                 if time.time() - self.lastshot > 1/self.firerate:
                     for x in range(0, self.multishot):
                         bullet = Projectile(self, self.mob1, self.player)
-                        bullet.rect.x = self.player.pos.x 
-                        bullet.rect.y = self.player.pos.y -50
+                        bullet.rect.x = self.player.rect.x 
+                        bullet.rect.y = self.player.rect.y -50
                         self.all_sprites.add(bullet)
                         self.bullet_list.add(bullet)
                     self.lastshot = time.time()
@@ -228,16 +229,16 @@ class Game:
                 self.lifesteal()
 
             # removes bullet if it exceeds a certain height or width
-            if bullet.pos.y > HEIGHT:
+            if bullet.rect.y > HEIGHT:
                 self.bullet_list.remove(bullet)
                 self.all_sprites.remove(bullet)
-            if bullet.pos.y < 0:
+            if bullet.rect.y < 0:
                 self.bullet_list.remove(bullet)
                 self.all_sprites.remove(bullet)
-            if bullet.pos.x > WIDTH:
+            if bullet.rect.x > WIDTH:
                 self.bullet_list.remove(bullet)
                 self.all_sprites.remove(bullet)
-            if bullet.pos.x < 0:
+            if bullet.rect.x < 0:
                 self.bullet_list.remove(bullet)
                 self.all_sprites.remove(bullet)
 
@@ -257,7 +258,7 @@ class Game:
                 self.lifestealamount += 1
                 self.money -= 25
         elif self.button4.rect.collidepoint(mouse_coords):
-            if self.money >= 10 and self.firerate > 0.2:
+            if self.money >= 10 and self.firerate <= 10:
                 self.firerate += 1
                 self.fireratescore += 1
                 self.money -= 10

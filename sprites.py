@@ -141,36 +141,32 @@ class Projectile(Sprite):
         # parent class is the class that the class is being inherited from
         super().__init__()
 
+        self.image = pg.Surface([10, 10])
+        self.image.fill(RED)
+        self.rect = self.image.get_rect()
         # allows the projectile class to make use of the parameters of other classes
         self.game = game
         self.enemies = enemies
         self.player = player
         self.projectilespeed = 1
-        self.pos = vec(50,50)
-        self.pos.x = self.player.pos.x
-        self.pos.y = self.player.pos.y
         self.vel = vec(randint(1,5),randint(1,5))
         self.acc = vec(1,1)
-        self.image = pg.Surface([10, 10])
-        self.image.fill(RED)
-        self.rect = self.image.get_rect()
-
+        
     # method for rudimentary tracking by changing velocities depending on enemy position
     def tracking(self):
-        if self.enemies.pos.x > self.pos.x:
-            self.vel.x -= self.projectilespeed
-        if self.enemies.pos.x < self.pos.x:
+        if self.enemies.pos.x > self.rect.x:
             self.vel.x += self.projectilespeed
-        if self.enemies.pos.y < self.pos.y:
-            self.vel.y += self.projectilespeed
-        if self.enemies.pos.y > self.pos.y:
+        if self.enemies.pos.x < self.rect.x:
+            self.vel.x -= self.projectilespeed
+        if self.enemies.pos.y < self.rect.y:
             self.vel.y -= self.projectilespeed
+        if self.enemies.pos.y > self.rect.y:
+            self.vel.y += self.projectilespeed
 
     # updates sprite when called
     def update(self):
         self.tracking()
-        self.pos += self.vel * MOB_FRICTION
-        self.rect.center = self.pos
+        self.rect.center += self.vel
 
 class Button(Sprite):
     # parameters for mob class
