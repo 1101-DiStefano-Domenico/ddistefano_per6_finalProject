@@ -11,7 +11,6 @@ Goal 1: create projectiles sprite ☑️
 Goal 2: create score & healthbar ☑️
 Goal 3: create start & end screen ☑️
 Goal 4: make it replayable ☑️
-
 Goal 5: add an upgrade system ☑️
 Goal 6: add music
 Goal 7: particles
@@ -28,7 +27,7 @@ import time
 
 # set up assets folders
 game_folder = os.path.dirname(__file__)
-img_folder = os.path.join(game_folder, "img")
+img_folder = os.path.join(game_folder, "images")
 
 
 # create game class in order to pass properties to the sprites file
@@ -189,8 +188,8 @@ class Game:
                 if time.time() - self.lastshot > 1/self.firerate:
                     for x in range(0, self.multishot):
                         bullet = Projectile(self, self.mob1, self.player)
-                        bullet.rect.x = self.player.rect.x 
-                        bullet.rect.y = self.player.rect.y -50
+                        bullet.rect.x = self.player.rect.x +20
+                        bullet.rect.y = self.player.rect.y +20
                         self.all_sprites.add(bullet)
                         self.bullet_list.add(bullet)
                     self.lastshot = time.time()
