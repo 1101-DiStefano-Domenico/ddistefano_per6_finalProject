@@ -14,7 +14,8 @@ Goal 4: make it replayable ☑️
 Goal 5: add an upgrade system ☑️
 Goal 6: add music
 Goal 7: particles
-Goal 8: enemy wave system
+Goal 8: enemy wave system/enemies come from off screen (maybe)
+Goal 9: bullets that go to mouse pos
 '''
 # import libs
 import pygame as pg
@@ -23,16 +24,17 @@ import os
 from settings import *
 from sprites import *
 import time
+from os import path
 # from pg.sprite import Sprite
 
 # set up assets folders
 game_folder = os.path.dirname(__file__)
 img_folder = os.path.join(game_folder, "images")
+sound_folder = os.path.join(game_folder, "sounds")
 
 
 # create game class in order to pass properties to the sprites file
 class Game:
-    
     def __init__(self):
         # initiate game window and game settings
         pg.init()
@@ -42,6 +44,8 @@ class Game:
         self.clock = pg.time.Clock()
         self.running = True
         self.startgame = False
+        self.playmusic = False
+    
 
         # no damage mode for testing
         self.godmode = False
@@ -72,11 +76,15 @@ class Game:
         self.fireratescore = 1
         self.togglefire = False
         self.lastshot = time.time()
+    
+    def load_data(self):
+        self.bgmusic = pg.mixer.music.load(path.join(sound_folder, "gamemusic.mp3"))
 
     # method that adds sprites  
     def new(self):
         # starting a new game and adding sprites to groups
         # separate groups for buttons and bullets so I can remove them individually
+        # self.load_data()
         self.bullet_list = pg.sprite.Group()
         self.button_list = pg.sprite.Group()
         self.all_sprites = pg.sprite.Group()
@@ -98,17 +106,24 @@ class Game:
             self.mob1 = Mob(self, self.player, 20, 20,GREEN)
             self.all_sprites.add(self.mob1)
             self.enemies.add(self.mob1)
-         
+        
+        # background music
+        pg.mixer.music.load(path.join(sound_folder, "gamemusic.mp3"))
+
         self.run()
 
     # method for running the game
     def run(self):
+        if self.playmusic:
+            pg.mixer.music.play(loops=-1)
         self.playing = True
+        # pg.mixer.music.fadeout(500)
         while self.playing:
             self.clock.tick(FPS)
             self.events()
             self.update()
             self.draw()
+            
             
     # method for detecting events in game
     def events(self):
@@ -137,6 +152,7 @@ class Game:
                     self.playing = False
                     self.timestopamount = 0
                     self.teleport = False
+                    self.playmusic = True
                     self.timeelapsed = 0
                     self.mob1.enemyspeed = 0.05
                     self.money = 0
@@ -202,8 +218,11 @@ class Game:
     def lifesteal(self):
         self.player.hp += self.lifestealamount
 
+
     # method that updates the game at 1/60th of a second
     def update(self):
+        
+
         self.button_list.update()
         if not self.upgradescreen and not self.timestop:
             self.all_sprites.update()
@@ -315,7 +334,7 @@ class Game:
                     self.draw_text("COST $10 - FIRERATE: " + str(self.fireratescore) + "/SEC", 30, WHITE, WIDTH/2, 500)
                 else:
                     self.draw_text("FIRERATE MAXED", 30, WHITE, WIDTH/2, 500)
-                self.draw_text("COST $5 - MULTISHOT AMOUNT: " + str(self.multishot), 30, WHITE, WIDTH/2, 550)
+                self.draw_text("COST $5 - MULTISHOT AMOUNT: " + str(self.multishot+1), 30, WHITE, WIDTH/2, 550)
                 # adds clickable buttons with button class
                 self.button_list.add(self.button1)
                 self.button_list.add(self.button2)
