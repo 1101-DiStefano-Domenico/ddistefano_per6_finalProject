@@ -78,7 +78,7 @@ class Game:
         self.lastshot = time.time()
     
     def load_data(self):
-        self.bgmusic = pg.mixer.music.load(path.join(sound_folder, "gamemusic.mp3"))
+        self.bgmusic = pg.mixer.music.load(path.join(sound_folder, "gamemusic2.mp3"))
 
     # method that adds sprites  
     def new(self):
@@ -108,7 +108,7 @@ class Game:
             self.enemies.add(self.mob1)
         
         # background music
-        pg.mixer.music.load(path.join(sound_folder, "gamemusic.mp3"))
+        pg.mixer.music.load(path.join(sound_folder, "gamemusic2.mp3"))
 
         self.run()
 

@@ -150,7 +150,6 @@ class Projectile(Sprite):
         self.player = player
         self.projectilespeed = 1
         self.vel = vec(randint(1,5),randint(1,5))
-        self.acc = vec(1,1)
         
     # method for rudimentary tracking by changing velocities depending on enemy position
     def tracking(self):
