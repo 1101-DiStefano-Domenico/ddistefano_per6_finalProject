@@ -12,10 +12,13 @@ Goal 2: create score & healthbar ☑️
 Goal 3: create start & end screen ☑️
 Goal 4: make it replayable ☑️
 Goal 5: add an upgrade system ☑️
-Goal 6: add music
-Goal 7: particles
-Goal 8: enemy wave system/enemies come from off screen (maybe)
-Goal 9: bullets that go to mouse pos
+Goal 6: add music ☑️
+Goal 7: enemy wave system ☑️ / enemies come from off screen (maybe) 
+Goal 8: bullets that go to mouse pos
+Goal 9: particles
+Goal 10: animations and space themed pixel art
+    - Player: UFO or Spaceship
+    - Enemies: Aliens or UFOS
 '''
 # import libs
 import pygame as pg
