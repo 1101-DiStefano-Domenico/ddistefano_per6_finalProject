@@ -28,6 +28,7 @@ from settings import *
 from sprites import *
 import time
 from os import path
+from math import floor
 # from pg.sprite import Sprite
 
 # set up assets folders
@@ -35,6 +36,19 @@ game_folder = os.path.dirname(__file__)
 img_folder = os.path.join(game_folder, "images")
 sound_folder = os.path.join(game_folder, "sounds")
 
+class Cooldown():
+    def __init__(self):
+        self.current_time = 0
+        self.event_time = 0
+        self.delta = 0
+    def ticking(self):
+        self.current_time = floor((pg.time.get_ticks())/1000)
+        self.delta = self.current_time - self.event_time
+        # print(self.delta)
+    def reset(self):
+        self.event_time = floor((pg.time.get_ticks())/1000)
+    def timer(self):
+        self.current_time = floor((pg.time.get_ticks())/1000)
 
 # create game class in order to pass properties to the sprites file
 class Game:
@@ -48,6 +62,7 @@ class Game:
         self.running = True
         self.startgame = False
         self.playmusic = False
+        self.last_update = 0
     
         # mob waves
         self.wavetimer = 10
@@ -88,6 +103,7 @@ class Game:
 
     # method that adds sprites  
     def new(self):
+        self.cd = Cooldown()
         # starting a new game and adding sprites to groups
         # separate groups for buttons and bullets so I can remove them individually
         # self.load_data()
@@ -109,7 +125,7 @@ class Game:
 
         # makes range of mobs and adds them to all sprites group
         for i in range(0, self.mobamount):
-                        self.mob1 = Mob(self, self.player, 20, 20,GREEN)
+                        self.mob1 = Mob(self)
                         self.all_sprites.add(self.mob1)
                         self.enemies.add(self.mob1)
         
@@ -125,7 +141,7 @@ class Game:
         self.playing = True
         # pg.mixer.music.fadeout(500)
         while self.playing:
-            self.clock.tick(FPS)
+            self.dt = self.clock.tick(FPS)
             self.events()
             self.update()
             self.draw()
@@ -160,7 +176,6 @@ class Game:
                     self.teleport = False
                     self.playmusic = True
                     self.timeelapsed = 0
-                    self.mob1.enemyspeed = 0.05
                     self.money = 0
                     self.lifestealamount = 1
                     self.firerate = 1
@@ -207,14 +222,12 @@ class Game:
             
             # togglefire and multishot
             if self.togglefire:
-                if time.time() - self.lastshot > 1/self.firerate:
-                    for x in range(0, self.multishot):
-                        bullet = Projectile(self, self.mob1, self.player)
-                        bullet.rect.x = self.player.rect.x +20
-                        bullet.rect.y = self.player.rect.y +20
-                        self.all_sprites.add(bullet)
-                        self.bullet_list.add(bullet)
-                    self.lastshot = time.time()
+                now = pg.time.get_ticks()
+                if now - self.last_update > 100:
+                    self.last_update = now
+                    bullet = Projectile(self)
+                    self.all_sprites.add(bullet)
+                    self.bullet_list.add(bullet)
             
             # time elapsed counter
             if self.alive:
@@ -226,7 +239,7 @@ class Game:
                     self.wavetimer += 10
                     self.mobamount += 10
                     for i in range(0, self.mobamount):
-                        self.mob1 = Mob(self, self.player, 20, 20,GREEN)
+                        self.mob1 = Mob(self)
                         self.all_sprites.add(self.mob1)
                         self.enemies.add(self.mob1)
 
@@ -237,23 +250,27 @@ class Game:
 
     # method that updates the game at 1/60th of a second
     def update(self):
+        self.cd.ticking()
+
         self.button_list.update()
         if not self.upgradescreen and not self.timestop:
             self.all_sprites.update()
         elif not self.upgradescreen and self.timestop:
             self.player1.update()
         for bullet in self.bullet_list:
-        # See if it hit a block
+        # See if it hit an enemy
             self.enemy_hit_list = pg.sprite.spritecollide(bullet, self.enemies, True)
             # For each enemy hit, remove the bullet and add to the score
-            for block in self.enemy_hit_list:
+            for e in self.enemy_hit_list:
                 self.bullet_list.remove(bullet)
                 self.all_sprites.remove(bullet)
                 self.player.score += 1
                 self.money += 5
 
                 # makes mobs path better as you kill them and replenish hp on kill
-                self.mob1.enemyspeed += 0.01 
+                m = Mob(self)
+                self.all_sprites.add(m)
+                self.enemies.add(m)
                 self.lifesteal()
 
             # removes bullet if it exceeds a certain height or width
