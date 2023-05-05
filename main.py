@@ -46,6 +46,9 @@ class Game:
         self.startgame = False
         self.playmusic = False
     
+        # mob waves
+        self.wavetimer = 10
+        self.mobamount = 10
 
         # no damage mode for testing
         self.godmode = False
@@ -102,10 +105,10 @@ class Game:
         self.button5 = Button(self, 350, 25, BLACK, WIDTH/2, 557)
 
         # makes range of mobs and adds them to all sprites group
-        for i in range(0,10):
-            self.mob1 = Mob(self, self.player, 20, 20,GREEN)
-            self.all_sprites.add(self.mob1)
-            self.enemies.add(self.mob1)
+        for i in range(0, self.mobamount):
+                        self.mob1 = Mob(self, self.player, 20, 20,GREEN)
+                        self.all_sprites.add(self.mob1)
+                        self.enemies.add(self.mob1)
         
         # background music
         pg.mixer.music.load(path.join(sound_folder, "gamemusic2.mp3"))
@@ -214,15 +217,23 @@ class Game:
             if self.alive:
                 if event.type == self.survivecounter:
                     self.timeelapsed += 1
-                    
+
+            # rudimentary wave system
+            if self.timeelapsed == self.wavetimer:
+                    self.wavetimer += 10
+                    self.mobamount += 10
+                    for i in range(0, self.mobamount):
+                        self.mob1 = Mob(self, self.player, 20, 20,GREEN)
+                        self.all_sprites.add(self.mob1)
+                        self.enemies.add(self.mob1)
+
+    # method for lifesteal
     def lifesteal(self):
         self.player.hp += self.lifestealamount
 
 
     # method that updates the game at 1/60th of a second
     def update(self):
-        
-
         self.button_list.update()
         if not self.upgradescreen and not self.timestop:
             self.all_sprites.update()
@@ -237,10 +248,6 @@ class Game:
                 self.all_sprites.remove(bullet)
                 self.player.score += 1
                 self.money += 5
-                # adds a new enemy after one dies
-                self.mob1 = Mob(self, self.player, 20, 20,(0,255,0))
-                self.all_sprites.add(self.mob1)
-                self.enemies.add(self.mob1)
 
                 # makes mobs path better as you kill them and replenish hp on kill
                 self.mob1.enemyspeed += 0.01 

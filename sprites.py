@@ -23,6 +23,7 @@ class Player(Sprite):
         self.cofric = 0.1
         self.hp = HEALTH
         self.score = SCORE
+        self.hurtamount = 1
 
     # method that takes user input and applies acceleration to the sprite
     def input(self):
@@ -60,7 +61,7 @@ class Player(Sprite):
         if hits and not self.game.godmode:
             self.vel.x *= 0
             self.vel.y *= 0
-            self.hp -= 1       
+            self.hp -= self.hurtamount
     
     # method that updates values every 1/60th of a second
     def update(self):
