@@ -14,7 +14,7 @@ Goal 4: make it replayable ☑️
 Goal 5: add an upgrade system ☑️
 Goal 6: add music ☑️
 Goal 7: enemy wave system ☑️ / enemies come from off screen (maybe) 
-Goal 8: bullets that go to mouse pos
+Goal 8: bullets that go to mouse pos ☑️
 Goal 9: particles
 Goal 10: animations and space themed pixel art
     - Player: UFO or Spaceship
@@ -63,7 +63,9 @@ class Game:
         self.startgame = False
         self.playmusic = False
         self.last_update = 0
-    
+        self.togglefire = False
+        background = pg.image.load(os.path.join(img_folder, "backgroundgame.png")).convert()
+        self.background = pg.transform.scale(background, (WIDTH, HEIGHT))
         # mob waves
         self.wavetimer = 10
         self.mobamount = 10
@@ -92,11 +94,6 @@ class Game:
         self.timestoptimer = pg.USEREVENT+1
         pg.time.set_timer(self.timestoptimer, 1000)
 
-        # firerate settings
-        self.firerate = 1
-        self.fireratescore = 1
-        self.togglefire = False
-        self.lastshot = time.time()
     
     def load_data(self):
         self.bgmusic = pg.mixer.music.load(path.join(sound_folder, "gamemusic2.mp3"))
@@ -177,9 +174,6 @@ class Game:
                     self.timeelapsed = 0
                     self.money = 0
                     self.lifestealamount = 1
-                    self.firerate = 1
-                    self.fireratescore = 1
-                    self.multishot = 1
                 
                 # button for upgrade screen
                 if event.key == pg.K_u:
@@ -310,7 +304,7 @@ class Game:
     def draw(self):
         # start screen
         if not self.startgame:
-            self.screen.fill(BLACK)
+            self.screen.blit(self.background, (0, 0))
             self.draw_text("ALIEN SWARM", 100, GREEN, WIDTH/2, 250)
             self.draw_text("PRESS P TO PLAY", 40, WHITE, WIDTH/2, 330)
             self.draw_text("WASD TO MOVE", 30, WHITE, WIDTH/2, 420)
@@ -321,7 +315,7 @@ class Game:
             if not self.teleport:
                 self.alive = False
                 self.togglefire = False
-                self.screen.fill(BLACK)
+                self.screen.blit(self.background, (0, 0))
                 self.button_list.draw(self.screen)
                 self.draw_text("UPGRADES", 100, WHITE, WIDTH/2, 250)
                 self.draw_text("MONEY: $" + str(self.money), 30, WHITE, WIDTH/2, 600)
@@ -336,7 +330,7 @@ class Game:
             elif self.teleport:
                 self.alive = False
                 self.togglefire = False
-                self.screen.fill(BLACK)
+                self.screen.blit(self.background, (0, 0))
                 self.button_list.draw(self.screen)
                 self.draw_text("UPGRADES", 100, WHITE, WIDTH/2, 250)
                 self.draw_text("MONEY: $" + str(self.money), 30, WHITE, WIDTH/2, 600)
@@ -355,7 +349,7 @@ class Game:
             # main game screen
             if self.player.hp > 0:
                 self.alive = True
-                self.screen.fill(BLACK)
+                self.screen.blit(self.background, (0, 0))
                 self.all_sprites.draw(self.screen)
                 self.draw_text("HULL INTEGRITY: " + str(self.player.hp), 30,WHITE, 1000, HEIGHT/32)
                 self.draw_text("ELIMINATIONS: " + str(self.player.score), 30,WHITE, 120, HEIGHT/32)
@@ -366,7 +360,7 @@ class Game:
             elif self.player.hp <= 0:
                 self.alive = False
                 self.togglefire = False
-                self.screen.fill(BLACK)
+                self.screen.blit(self.background, (0, 0))
                 self.draw_text("YOU DIED", 100, RED, WIDTH/2, 250)
                 self.draw_text("PLAY AGAIN? (P)", 30, WHITE, WIDTH/2, 450)
                 self.draw_text("ELIMINATIONS: " + str(self.player.score), 30, WHITE, WIDTH/2, 350)
