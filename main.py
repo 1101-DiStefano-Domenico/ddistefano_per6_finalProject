@@ -120,8 +120,6 @@ class Game:
         self.button1 = Button(self, 200, 25, BLACK, WIDTH/2, 357)
         self.button2 = Button(self, 250, 25, BLACK, WIDTH/2, 407)
         self.button3 = Button(self, 280, 25, BLACK, WIDTH/2, 457)
-        self.button4 = Button(self, 300, 25, BLACK, WIDTH/2, 507)
-        self.button5 = Button(self, 350, 25, BLACK, WIDTH/2, 557)
 
         # makes range of mobs and adds them to all sprites group
         for i in range(0, self.mobamount):
@@ -163,10 +161,11 @@ class Game:
 
                 # creates projectile on player location and adds it to all sprites and bullet list toggle on/off
                 if event.key == pg.K_SPACE:
-                    if not self.togglefire:
-                        self.togglefire = True
-                    else:
-                        self.togglefire = False
+                    if self.player.hp > 0:
+                        if not self.togglefire:
+                            self.togglefire = True
+                        else:
+                            self.togglefire = False
 
                 # key that starts game and resets game settings and upgrades
                 if event.key == pg.K_p:
@@ -223,9 +222,12 @@ class Game:
             # togglefire and multishot
             if self.togglefire:
                 now = pg.time.get_ticks()
+                mouse_pos = pg.mouse.get_pos()
+                mouse_x = mouse_pos[0]
+                mouse_y = mouse_pos[1]
                 if now - self.last_update > 100:
                     self.last_update = now
-                    bullet = Projectile(self)
+                    bullet = Projectile(self, (mouse_x, mouse_y))
                     self.all_sprites.add(bullet)
                     self.bullet_list.add(bullet)
             
@@ -235,13 +237,13 @@ class Game:
                     self.timeelapsed += 1
 
             # rudimentary wave system
-            if self.timeelapsed == self.wavetimer:
-                    self.wavetimer += 10
-                    self.mobamount += 10
-                    for i in range(0, self.mobamount):
-                        self.mob1 = Mob(self)
-                        self.all_sprites.add(self.mob1)
-                        self.enemies.add(self.mob1)
+            # if self.timeelapsed == self.wavetimer:
+            #         self.wavetimer += 10
+            #         self.mobamount += 10
+            #         for i in range(0, self.mobamount):
+            #             self.mob1 = Mob(self)
+            #             self.all_sprites.add(self.mob1)
+            #             self.enemies.add(self.mob1)
 
     # method for lifesteal
     def lifesteal(self):
@@ -302,15 +304,6 @@ class Game:
             if self.money >= 25:
                 self.lifestealamount += 1
                 self.money -= 25
-        elif self.button4.rect.collidepoint(mouse_coords):
-            if self.money >= 10 and self.firerate <= 10:
-                self.firerate += 1
-                self.fireratescore += 1
-                self.money -= 10
-        elif self.button5.rect.collidepoint(mouse_coords):
-            if self.money >= 5:
-                self.multishot += 1
-                self.money -= 5
         
 
     # method for displaying the game and displaying end screen when player hp = 0
@@ -335,17 +328,10 @@ class Game:
                 self.draw_text("COST $100 - TELEPORT ABILITY", 30, WHITE, WIDTH/2, 350)
                 self.draw_text("COST $50 - TIMESTOP ABILITY: " + str(self.timestopamount), 30, WHITE, WIDTH/2, 400)
                 self.draw_text("COST $25 - LIFESTEAL AMOUNT: " + str(self.lifestealamount), 30, WHITE, WIDTH/2, 450)
-                if self.fireratescore < 10:
-                    self.draw_text("COST $10 - FIRERATE: " + str(self.fireratescore) + "/SEC", 30, WHITE, WIDTH/2, 500)
-                else:
-                    self.draw_text("FIRERATE MAXED", 30, WHITE, WIDTH/2, 500)
-                self.draw_text("COST $5 - MULTISHOT AMOUNT: " + str(self.multishot), 30, WHITE, WIDTH/2, 550)
                 # adds clickable buttons with button class
                 self.button_list.add(self.button1)
                 self.button_list.add(self.button2)
                 self.button_list.add(self.button3)
-                self.button_list.add(self.button4)
-                self.button_list.add(self.button5)
                 self.draw_text("PRESS Q TO TIMESTOP", 30, WHITE, WIDTH/2, 650)
             elif self.teleport:
                 self.alive = False
@@ -357,17 +343,10 @@ class Game:
                 self.draw_text("TELEPORT ABILITY GAINED", 30, WHITE, WIDTH/2, 350)
                 self.draw_text("COST $50 - TIMESTOP ABILITY: " + str(self.timestopamount), 30, WHITE, WIDTH/2, 400)
                 self.draw_text("COST $25 - LIFESTEAL AMOUNT: " + str(self.lifestealamount), 30, WHITE, WIDTH/2, 450)
-                if self.fireratescore < 10:
-                    self.draw_text("COST $10 - FIRERATE: " + str(self.fireratescore) + "/SEC", 30, WHITE, WIDTH/2, 500)
-                else:
-                    self.draw_text("FIRERATE MAXED", 30, WHITE, WIDTH/2, 500)
-                self.draw_text("COST $5 - MULTISHOT AMOUNT: " + str(self.multishot+1), 30, WHITE, WIDTH/2, 550)
                 # adds clickable buttons with button class
                 self.button_list.add(self.button1)
                 self.button_list.add(self.button2)
                 self.button_list.add(self.button3)
-                self.button_list.add(self.button4)
-                self.button_list.add(self.button5)
                 self.draw_text("PRESS E TO TELEPORT", 30, WHITE, WIDTH/2, 670)
                 self.draw_text("PRESS Q TO TIMESTOP", 30, WHITE, WIDTH/2, 650)
         
@@ -378,7 +357,7 @@ class Game:
                 self.alive = True
                 self.screen.fill(BLACK)
                 self.all_sprites.draw(self.screen)
-                self.draw_text("HP: " + str(self.player.hp), 30,WHITE, 1100, HEIGHT/32)
+                self.draw_text("HULL INTEGRITY: " + str(self.player.hp), 30,WHITE, 1000, HEIGHT/32)
                 self.draw_text("ELIMINATIONS: " + str(self.player.score), 30,WHITE, 120, HEIGHT/32)
                 self.draw_text("TIME SURVIVED: " + str(self.timeelapsed) + " SECONDS", 30, WHITE, WIDTH/2, HEIGHT/32)
                 self.draw_text("MONEY: $" + str(self.money), 30, WHITE, 83, HEIGHT/32 +30)

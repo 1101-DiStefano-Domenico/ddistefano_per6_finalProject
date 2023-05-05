@@ -21,11 +21,13 @@ DARKGRAY = (55, 55, 55)
 YELLOW = (255, 255, 0)
 CYAN = (0, 255, 255)
 
-# mob & player properties
+# mob, projectile, & player properties
 MAX_SPEED = 20
 MAX_FORCE = 0.5
 MAX_MOBSPEED = 6
 MAX_MOBFORCE = 0.1
+MAX_BULLETSPEED = 2
+MAX_BULLETFORCE = 0.1
 APPROACH_RADIUS = 100
 SEPARATION = 20
 SEEK_WEIGHT = 1

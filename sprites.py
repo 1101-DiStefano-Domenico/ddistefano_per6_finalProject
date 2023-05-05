@@ -4,10 +4,22 @@ from settings import *
 from random import randint
 import math
 import datetime
-from math import floor
+from math import *
 
 
 vec = pg.math.Vector2
+
+class Cooldown():
+    def __init__(self):
+        self.current_time = 0
+        self.event_time = 0
+        self.delta = 0
+    def ticking(self):
+        self.current_time = floor((pg.time.get_ticks())/1000)
+        self.delta = self.current_time - self.event_time
+        # print(self.delta)
+    def timer(self):
+        self.current_time = floor((pg.time.get_ticks())/1000)
 
 # player class
 class Player(Sprite):
@@ -25,20 +37,13 @@ class Player(Sprite):
         self.score = SCORE
         self.hurtamount = 1
         self.steer = vec(0,0)
-
-    # method that takes user input and applies acceleration to the sprite
+    
     def input(self):
         keystate = pg.key.get_pressed()
+        if keystate[pg.K_c]:
+            self.vel.x *= 0
+            self.vel.y *= 0
 
-        if keystate[pg.K_a]:
-            self.acc.x = -PLAYER_ACC
-        if keystate[pg.K_d]:
-            self.acc.x = PLAYER_ACC
-        if keystate[pg.K_w]:
-            self.acc.y = -PLAYER_ACC
-        if keystate[pg.K_s]:
-            self.acc.y = PLAYER_ACC
-    
     def seek(self, target):
         self.desired = (target - self.pos).normalize() * MAX_SPEED
         self.steer = (self.desired - self.vel)
@@ -72,7 +77,7 @@ class Player(Sprite):
         desired = vec(0, 0)
         steer = vec(0, 0)
         count = 0
-        for mob in self.game.all_sprites:
+        for mob in self.game.enemies:
             if mob != self:
                 d = self.pos.distance_to(mob.pos)
                 if d < SEPARATION:
@@ -108,8 +113,8 @@ class Player(Sprite):
     def mob_collide(self):
         hits = pg.sprite.spritecollide(self, self.game.enemies, False)
         if hits and not self.game.godmode:
-            self.vel.x *= 0
-            self.vel.y *= 0
+            self.vel.x *= .75
+            self.vel.y *= .75
             self.hp -= self.hurtamount
     
     # method that updates values every 1/60th of a second
@@ -188,9 +193,15 @@ class Mob(pg.sprite.Sprite):
             if steer.length() > MAX_MOBFORCE:
                 steer.scale_to_length(MAX_MOBFORCE)
         return steer
+    
+    def player_collide(self):
+        hits = pg.sprite.spritecollide(self, self.game.player1, False)
+        if hits:
+            self.vel.x *= 0
+            self.vel.y *= 0
 
     def update(self):
-        # mpos = vec(pg.mouse.get_pos())
+        self.player_collide()
         seek = self.seek_with_approach2(self.game.player.pos)
         self.vel += seek * SEEK_WEIGHT
         if self.vel.length() > MAX_MOBSPEED:
@@ -202,85 +213,34 @@ class Mob(pg.sprite.Sprite):
         self.pos += self.vel
         self.rect.center = self.pos
 
-# class for projectiles
 class Projectile(pg.sprite.Sprite):
-    def __init__(self, game):
-        Sprite.__init__(self)
+    def __init__(self, game, direction):
+        pg.sprite.Sprite.__init__(self)
         self.game = game
         self.image = pg.Surface((10, 10))
         self.image.fill(RED)
         self.rect = self.image.get_rect()
-        self.pos = vec(self.game.player.rect.x +25, self.game.player.rect.y +25)
-        # self.pos = vec(randint(25, WIDTH - 25), randint(25, HEIGHT - 25))
+        self.pos = vec(self.game.player.rect.x + 25, self.game.player.rect.y + 25)
         self.vel = vec(0, 0)
         self.acc = vec(0, 0)
         self.rect.center = self.pos
         self.steer = vec(0, 0)
-
-    def seek(self, target):
-        self.desired = (target - self.pos).normalize() * MAX_SPEED
-        self.steer = (self.desired - self.vel)
-        if self.steer.length() > MAX_FORCE:
-            self.steer.scale_to_length(MAX_FORCE)
-
-    def seek_with_approach(self, target):
-        self.desired = (target - self.pos) * 0.1
-        if self.desired.length() > MAX_SPEED:
-            self.desired.scale_to_length(MAX_SPEED)
-        self.steer = (self.desired - self.vel)
-        if self.steer.length() > MAX_FORCE:
-            self.steer.scale_to_length(MAX_FORCE)
-
-    def seek_with_approach2(self, target):
-        # more intelligent slowing
-        desired = (target - self.pos)
-        d = desired.length()
-        desired.normalize_ip()
-        if d < APPROACH_RADIUS:
-            desired *= d / APPROACH_RADIUS * MAX_SPEED
-        else:
-            desired *= MAX_SPEED
-        steer = (desired - self.vel)
-        if steer.length() > MAX_FORCE:
-            steer.scale_to_length(MAX_FORCE)
-        return steer
-
-    def separate(self):
-        # move away from other mobs
-        desired = vec(0, 0)
-        steer = vec(0, 0)
-        count = 0
-        for mob in self.game.all_sprites:
-            if mob != self:
-                d = self.pos.distance_to(mob.pos)
-                if d < SEPARATION:
-                    diff = (self.pos - mob.pos).normalize()
-                    desired += diff
-                    count += 1
-        if count > 0:
-            desired /= count
-            desired.scale_to_length(MAX_SPEED)
-            steer = (desired - self.vel)
-            if steer.length() > MAX_FORCE:
-                steer.scale_to_length(MAX_FORCE)
-        return steer
+        self.speed = MAX_BULLETSPEED
+        self.direction = direction
 
     def update(self):
-        # mpos = vec(pg.mouse.get_pos())'
-        for e in self.game.enemies:
-            seek = self.seek_with_approach2(e.pos)
-        self.vel += seek * SEEK_WEIGHT
-        if self.vel.length() > MAX_SPEED:
-            self.vel.scale_to_length(MAX_SPEED)
-        avoid = self.separate() * AVOID_WEIGHT
-        self.vel += avoid
-        if self.vel.length() > MAX_SPEED:
-            self.vel.scale_to_length(MAX_SPEED)
+        if self.vel.length() == 0:
+            targetx, targety = self.direction
+            distance_x = targetx - self.rect.x
+            distance_y = targety - self.rect.y
+            angle = atan2(distance_y, distance_x)
+            speed_x = self.speed * cos(angle)
+            speed_y = self.speed * sin(angle)
+            self.vel = vec(speed_x, speed_y)
         self.pos += self.vel * self.game.dt
         self.rect.center = self.pos
+
         
-
-
 class Button(Sprite):
     # parameters for mob class
     def __init__(self, game, width, height, color,x,y):
