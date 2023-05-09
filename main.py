@@ -6,6 +6,10 @@ Goals, Rules, Feedback, Freedom
 Sources:
 https://stackoverflow.com/questions/41348333/how-to-freeze-a-sprite-for-a-certain-amount-of-time-in-pygame
 https://stackoverflow.com/questions/30720665/countdown-timer-in-pygame
+Mr. Cozort for pathing and particles
+https://www.youtube.com/watch?v=g1jo_qsO5c4&ab_channel=KidsCanCode
+
+
 
 Goal 1: create projectiles sprite ☑️
 Goal 2: create score & healthbar ☑️
@@ -68,6 +72,7 @@ class Game:
         self.background = pg.transform.scale(background, (WIDTH, HEIGHT))
         # mob waves
         self.wavetimer = 10
+        self.wavetimeadd = 10
         self.mobamount = 10
 
         # no damage mode for testing
@@ -94,7 +99,6 @@ class Game:
         self.timestoptimer = pg.USEREVENT+1
         pg.time.set_timer(self.timestoptimer, 1000)
 
-    
     def load_data(self):
         self.bgmusic = pg.mixer.music.load(path.join(sound_folder, "gamemusic2.mp3"))
 
@@ -108,21 +112,22 @@ class Game:
         self.button_list = pg.sprite.Group()
         self.all_sprites = pg.sprite.Group()
         self.enemies = pg.sprite.Group()
+        self.particles = pg.sprite.Group()
         self.player1 = pg.sprite.Group()
         self.player = Player(self)
         self.all_sprites.add(self.player)
         self.player1.add(self.player)
 
         # creating buttons
-        self.button1 = Button(self, 200, 25, BLACK, WIDTH/2, 357)
-        self.button2 = Button(self, 250, 25, BLACK, WIDTH/2, 407)
-        self.button3 = Button(self, 280, 25, BLACK, WIDTH/2, 457)
+        self.button1 = Button(self, 350, 25, BLACK, WIDTH/2, 357)
+        self.button2 = Button(self, 350, 25, BLACK, WIDTH/2, 407)
+        self.button3 = Button(self, 350, 25, BLACK, WIDTH/2, 457)
 
         # makes range of mobs and adds them to all sprites group
         for i in range(0, self.mobamount):
-                        self.mob1 = Mob(self)
-                        self.all_sprites.add(self.mob1)
-                        self.enemies.add(self.mob1)
+            self.mob1 = Mob(self)
+            self.all_sprites.add(self.mob1)
+            self.enemies.add(self.mob1)
         
         # background music
         pg.mixer.music.load(path.join(sound_folder, "gamemusic2.mp3"))
@@ -174,6 +179,10 @@ class Game:
                     self.timeelapsed = 0
                     self.money = 0
                     self.lifestealamount = 1
+                    self.mobamount = 10
+                    self.wavetimer = 10
+                    self.wavetimeadd = 10
+                    self.player.hurtamount = 1
                 
                 # button for upgrade screen
                 if event.key == pg.K_u:
@@ -197,8 +206,15 @@ class Game:
                     mouse_x = mouse_pos[0]
                     mouse_y = mouse_pos[1]
                     if self.teleport:
-                        self.player.pos.x = mouse_x
-                        self.player.pos.y = mouse_y
+                        # check if the length of the player position vector is greater than zero
+                        if self.player.pos.length() > 0:
+                            
+
+                            # gets direction of mouse and moves player 250 units towards that position
+                            direction = pg.math.Vector2(mouse_x, mouse_y) - self.player.pos
+                            self.player.pos += direction.normalize() * 250
+
+                            
 
                 # timestop
                 if event.key == pg.K_q:
@@ -206,8 +222,12 @@ class Game:
                         self.timestopamount -= 1
                         self.counter = 3
                         self.timestopcounter = True
+
+            # clicking calls method
             if event.type == pg.MOUSEBUTTONUP:
                 self.mousecollide()
+            
+            # counter for timestopping
             if self.timestopcounter:
                 if event.type == self.timestoptimer:
                     self.counter -= 1
@@ -216,7 +236,7 @@ class Game:
                         self.timestop = False
                         self.timestopcounter = False
             
-            # togglefire and multishot
+            # togglefire
             if self.togglefire:
                 now = pg.time.get_ticks()
                 mouse_pos = pg.mouse.get_pos()
@@ -234,23 +254,25 @@ class Game:
                     self.timeelapsed += 1
 
             # rudimentary wave system
-            # if self.timeelapsed == self.wavetimer:
-            #         self.wavetimer += 10
-            #         self.mobamount += 10
-            #         for i in range(0, self.mobamount):
-            #             self.mob1 = Mob(self)
-            #             self.all_sprites.add(self.mob1)
-            #             self.enemies.add(self.mob1)
+            if self.timeelapsed == self.wavetimer:
+                    self.wavetimeadd += 5
+                    self.wavetimer += self.wavetimeadd
+                    self.mobamount += 5
+                    self.player.hurtamount += 1
+                    for i in range(0, self.mobamount):
+                        self.mob1 = Mob(self)
+                        self.all_sprites.add(self.mob1)
+                        self.enemies.add(self.mob1)
 
     # method for lifesteal
     def lifesteal(self):
         self.player.hp += self.lifestealamount
 
-
     # method that updates the game at 1/60th of a second
     def update(self):
+        # updates the timer for cooldown class
         self.cd.ticking()
-
+        # updates button sprite group
         self.button_list.update()
         if not self.upgradescreen and not self.timestop:
             self.all_sprites.update()
@@ -266,10 +288,11 @@ class Game:
                 self.player.score += 1
                 self.money += 5
 
-                # makes mobs path better as you kill them and replenish hp on kill
-                m = Mob(self)
-                self.all_sprites.add(m)
-                self.enemies.add(m)
+                # teleport particles
+                # self.teleparticle = Particle(self.player.pos.x, self.player.pos.y, randint(5,10), randint(5,12), PURPLE)
+                self.teleparticle = Particle(WIDTH/2, HEIGHT/2, randint(5,10), randint(5,12), PURPLE)
+                self.all_sprites.add(self.teleparticle)
+                
                 self.lifesteal()
 
             # removes bullet if it exceeds a certain height or width
@@ -288,7 +311,7 @@ class Game:
 
     # method for detecting mouse collisions with buttons
     def mousecollide(self):
-        mouse_coords = pg.mouse.get_pos()
+        mouse_coords = pg.mouse.get_ss()
         if self.button1.rect.collidepoint(mouse_coords):
             if self.money >= 100 and not self.teleport:
                 self.teleport = True
@@ -318,8 +341,7 @@ class Game:
             if not self.teleport:
                 self.alive = False
                 self.togglefire = False
-                self.screen.blit(self.background, (0, 0))
-                self.button_list.draw(self.screen)
+                self.screen.fill(BLACK)
                 self.draw_text("UPGRADES", 100, WHITE, WIDTH/2, 250)
                 self.draw_text("MONEY: $" + str(self.money), 30, WHITE, WIDTH/2, 600)
                 self.draw_text("COST $100 - TELEPORT ABILITY", 30, WHITE, WIDTH/2, 350)
@@ -333,8 +355,7 @@ class Game:
             elif self.teleport:
                 self.alive = False
                 self.togglefire = False
-                self.screen.blit(self.background, (0, 0))
-                self.button_list.draw(self.screen)
+                self.screen.fill(BLACK)
                 self.draw_text("UPGRADES", 100, WHITE, WIDTH/2, 250)
                 self.draw_text("MONEY: $" + str(self.money), 30, WHITE, WIDTH/2, 600)
                 self.draw_text("TELEPORT ABILITY GAINED", 30, WHITE, WIDTH/2, 350)
@@ -370,8 +391,6 @@ class Game:
                 self.draw_text("TIME SURVIVED: " + str(self.timeelapsed) + " SECONDS", 30, WHITE, WIDTH/2, 400)
                 # removes all sprites to stop any updates while not visible
                 self.all_sprites.empty()
-
-    
 
         pg.display.flip()
     

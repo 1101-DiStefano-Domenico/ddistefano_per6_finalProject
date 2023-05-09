@@ -5,6 +5,7 @@ from random import randint
 import math
 import datetime
 from math import *
+from secrets import choice
 
 
 vec = pg.math.Vector2
@@ -255,9 +256,29 @@ class Button(Sprite):
         self.rect = self.image.get_rect()
         # randomizes starting position and velocity
         self.pos = vec(x,y)
-        
-
     
     def update(self):
         # self.mousecollide()
         self.rect.center = self.pos
+
+class Particle(Sprite):
+    def __init__(self, x, y, w, h, color):
+        Sprite.__init__(self)
+        self.image = pg.Surface((w, h))
+        self.color = color
+        self.image.fill(self.color)
+        self.rect = self.image.get_rect()
+        self.rect.x = x
+        self.rect.y = y
+        self.speedx = randint(2,20)*choice([-1,1])
+        self.speedy = randint(2,20)*choice([-1,1])
+        self.countdown = Cooldown()
+        self.countdown.event_time = floor(pg.time.get_ticks()/1000)
+        print('created a particle')
+    def update(self):
+        self.countdown.ticking()
+        self.rect.x += self.speedx
+        self.rect.y += self.speedy+GRAVITY
+        if self.countdown.delta > 1:
+            print('time to die...')
+            self.kill()

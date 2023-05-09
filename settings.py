@@ -20,6 +20,7 @@ MENU = False
 DARKGRAY = (55, 55, 55)
 YELLOW = (255, 255, 0)
 CYAN = (0, 255, 255)
+PURPLE = (255,0,255)
 
 # mob, projectile, & player properties
 MAX_SPEED = 20
@@ -32,3 +33,4 @@ APPROACH_RADIUS = 100
 SEPARATION = 20
 SEEK_WEIGHT = 1
 AVOID_WEIGHT = 3.5
+GRAVITY = 0.9
