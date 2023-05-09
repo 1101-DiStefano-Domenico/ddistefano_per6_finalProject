@@ -112,7 +112,7 @@ class Game:
         self.button_list = pg.sprite.Group()
         self.all_sprites = pg.sprite.Group()
         self.enemies = pg.sprite.Group()
-        self.particles = pg.sprite.Group()
+        self.particle = pg.sprite.Group()
         self.player1 = pg.sprite.Group()
         self.player = Player(self)
         self.all_sprites.add(self.player)
@@ -205,16 +205,17 @@ class Game:
                     mouse_pos = pg.mouse.get_pos()
                     mouse_x = mouse_pos[0]
                     mouse_y = mouse_pos[1]
+                    pos_x = self.player.pos.x
+                    pos_y = self.player.pos.y
                     if self.teleport:
                         # check if the length of the player position vector is greater than zero
-                        if self.player.pos.length() > 0:
-                            
-
+                        if pg.math.Vector2(pos_x, pos_y).length() > 0:
+                            for i in range(15):
+                                p1 = Particle(pos_x, pos_y, 5,5, PURPLE)
+                                self.all_sprites.add(p1)
                             # gets direction of mouse and moves player 250 units towards that position
                             direction = pg.math.Vector2(mouse_x, mouse_y) - self.player.pos
                             self.player.pos += direction.normalize() * 250
-
-                            
 
                 # timestop
                 if event.key == pg.K_q:
@@ -283,16 +284,16 @@ class Game:
             self.enemy_hit_list = pg.sprite.spritecollide(bullet, self.enemies, True)
             # For each enemy hit, remove the bullet and add to the score
             for e in self.enemy_hit_list:
+                pos_x = self.enemy_hit_list[0].rect.x
+                pos_y = self.enemy_hit_list[0].rect.y
+                for i in range(5):
+                    p2 = Particle(pos_x, pos_y, 5,5, GREEN)
+                    self.all_sprites.add(p2)
                 self.bullet_list.remove(bullet)
                 self.all_sprites.remove(bullet)
                 self.player.score += 1
                 self.money += 5
 
-                # teleport particles
-                # self.teleparticle = Particle(self.player.pos.x, self.player.pos.y, randint(5,10), randint(5,12), PURPLE)
-                self.teleparticle = Particle(WIDTH/2, HEIGHT/2, randint(5,10), randint(5,12), PURPLE)
-                self.all_sprites.add(self.teleparticle)
-                
                 self.lifesteal()
 
             # removes bullet if it exceeds a certain height or width
@@ -311,7 +312,7 @@ class Game:
 
     # method for detecting mouse collisions with buttons
     def mousecollide(self):
-        mouse_coords = pg.mouse.get_ss()
+        mouse_coords = pg.mouse.get_pos()
         if self.button1.rect.collidepoint(mouse_coords):
             if self.money >= 100 and not self.teleport:
                 self.teleport = True
@@ -367,7 +368,6 @@ class Game:
                 self.button_list.add(self.button3)
                 self.draw_text("PRESS E TO TELEPORT", 30, WHITE, WIDTH/2, 670)
                 self.draw_text("PRESS Q TO TIMESTOP", 30, WHITE, WIDTH/2, 650)
-        
             
         else:
             # main game screen

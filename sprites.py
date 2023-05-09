@@ -2,6 +2,7 @@ import pygame as pg
 from pygame.sprite import Sprite
 from settings import *
 from random import randint
+import random
 import math
 import datetime
 from math import *
@@ -270,15 +271,15 @@ class Particle(Sprite):
         self.rect = self.image.get_rect()
         self.rect.x = x
         self.rect.y = y
-        self.speedx = randint(2,20)*choice([-1,1])
-        self.speedy = randint(2,20)*choice([-1,1])
+        self.pos = (self.rect.x,self.rect.y)
+        self.speedx = randint(2,5)*choice([-1,1])
+        self.speedy = randint(2,5)*choice([-1,1])
         self.countdown = Cooldown()
         self.countdown.event_time = floor(pg.time.get_ticks()/1000)
-        print('created a particle')
     def update(self):
         self.countdown.ticking()
         self.rect.x += self.speedx
         self.rect.y += self.speedy+GRAVITY
+        self.pos = (self.rect.x, self.rect.y)
         if self.countdown.delta > 1:
-            print('time to die...')
             self.kill()
