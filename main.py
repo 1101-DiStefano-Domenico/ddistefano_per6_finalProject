@@ -193,9 +193,12 @@ class Game:
 
                 # teleport
                 if event.key == pg.K_e:
-                    mouse_coords = pg.mouse.get_pos()
+                    mouse_pos = pg.mouse.get_pos()
+                    mouse_x = mouse_pos[0]
+                    mouse_y = mouse_pos[1]
                     if self.teleport:
-                        self.player.pos = mouse_coords
+                        self.player.pos.x = mouse_x
+                        self.player.pos.y = mouse_y
 
                 # timestop
                 if event.key == pg.K_q:
