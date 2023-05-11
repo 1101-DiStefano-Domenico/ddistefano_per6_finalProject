@@ -9,37 +9,38 @@ https://stackoverflow.com/questions/30720665/countdown-timer-in-pygame
 Mr. Cozort for pathing and particles
 https://www.youtube.com/watch?v=g1jo_qsO5c4&ab_channel=KidsCanCode
 
-
-
+Goals:
 Goal 1: create projectiles sprite ☑️
 Goal 2: create score & healthbar ☑️
 Goal 3: create start & end screen ☑️
 Goal 4: make it replayable ☑️
 Goal 5: add an upgrade system ☑️
 Goal 6: add music ☑️
-Goal 7: enemy wave system ☑️ / enemies come from off screen (maybe) 
+Goal 7: enemy wave system ☑️ / enemies come from off screen (maybe) ☑️
 Goal 8: bullets that go to mouse pos ☑️
-Goal 9: particles
+Goal 9: particles ☑️
 Goal 10: animations and space themed pixel art
     - Player: UFO or Spaceship
     - Enemies: Aliens or UFOS
+    - Background: Space ☑️
 '''
-# import libs
+# import libraries
 import pygame as pg
 import os
-# import settings 
-from settings import *
-from sprites import *
 import time
 from os import path
 from math import floor
-# from pg.sprite import Sprite
+# import settings and sprites
+from settings import *
+from sprites import *
+
 
 # set up assets folders
 game_folder = os.path.dirname(__file__)
 img_folder = os.path.join(game_folder, "images")
 sound_folder = os.path.join(game_folder, "sounds")
 
+# class for cooldown timers
 class Cooldown():
     def __init__(self):
         self.current_time = 0
@@ -70,10 +71,12 @@ class Game:
         self.togglefire = False
         background = pg.image.load(os.path.join(img_folder, "backgroundgame.png")).convert()
         self.background = pg.transform.scale(background, (WIDTH, HEIGHT))
+
         # mob waves
         self.wavetimer = 10
         self.wavetimeadd = 10
         self.mobamount = 10
+        self.hurtincrease = 0
 
         # no damage mode for testing
         self.godmode = False
@@ -99,6 +102,7 @@ class Game:
         self.timestoptimer = pg.USEREVENT+1
         pg.time.set_timer(self.timestoptimer, 1000)
 
+    # method to set up game sounds
     def load_data(self):
         self.bgmusic = pg.mixer.music.load(path.join(sound_folder, "gamemusic2.mp3"))
 
@@ -106,8 +110,7 @@ class Game:
     def new(self):
         self.cd = Cooldown()
         # starting a new game and adding sprites to groups
-        # separate groups for buttons and bullets so I can remove them individually
-        # self.load_data()
+        # separate groups for each sprite so I can effect them individually
         self.bullet_list = pg.sprite.Group()
         self.button_list = pg.sprite.Group()
         self.all_sprites = pg.sprite.Group()
@@ -183,6 +186,7 @@ class Game:
                     self.wavetimer = 10
                     self.wavetimeadd = 10
                     self.player.hurtamount = 1
+                    self.hurtincrease = 0
                 
                 # button for upgrade screen
                 if event.key == pg.K_u:
@@ -250,16 +254,23 @@ class Game:
                     self.bullet_list.add(bullet)
             
             # time elapsed counter
-            if self.alive:
+            if self.alive and not self.timestop:
                 if event.type == self.survivecounter:
                     self.timeelapsed += 1
 
             # rudimentary wave system
             if self.timeelapsed == self.wavetimer:
-                    self.wavetimeadd += 5
+                    if self.wavetimeadd < 20:
+                        self.wavetimeadd += 5
                     self.wavetimer += self.wavetimeadd
-                    self.mobamount += 5
-                    self.player.hurtamount += 1
+                    self.mobamount += 7
+                    # increases mob damage over time
+                    if self.hurtincrease < 2:
+                        self.hurtincrease += 1
+                    else:
+                        self.player.hurtamount += 1
+                        self.hurtincrease = 0
+                    # adds mob amount proportional to self.mobamount
                     for i in range(0, self.mobamount):
                         self.mob1 = Mob(self)
                         self.all_sprites.add(self.mob1)
@@ -275,14 +286,15 @@ class Game:
         self.cd.ticking()
         # updates button sprite group
         self.button_list.update()
+        # if/else statement for timestopping
         if not self.upgradescreen and not self.timestop:
             self.all_sprites.update()
         elif not self.upgradescreen and self.timestop:
             self.player1.update()
         for bullet in self.bullet_list:
-        # See if it hit an enemy
+        # See if bullet hits an enemy
             self.enemy_hit_list = pg.sprite.spritecollide(bullet, self.enemies, True)
-            # For each enemy hit, remove the bullet and add to the score
+            # For each enemy hit, remove the bullet, add to the score & money, lifesteal, and add particles
             for e in self.enemy_hit_list:
                 pos_x = self.enemy_hit_list[0].rect.x
                 pos_y = self.enemy_hit_list[0].rect.y
@@ -326,7 +338,6 @@ class Game:
                 self.lifestealamount += 1
                 self.money -= 25
         
-
     # method for displaying the game and displaying end screen when player hp = 0
     def draw(self):
         # start screen
@@ -386,9 +397,10 @@ class Game:
                 self.togglefire = False
                 self.screen.blit(self.background, (0, 0))
                 self.draw_text("YOU DIED", 100, RED, WIDTH/2, 250)
-                self.draw_text("PLAY AGAIN? (P)", 30, WHITE, WIDTH/2, 450)
+                self.draw_text("PLAY AGAIN? (P)", 30, WHITE, WIDTH/2, 500)
                 self.draw_text("ELIMINATIONS: " + str(self.player.score), 30, WHITE, WIDTH/2, 350)
                 self.draw_text("TIME SURVIVED: " + str(self.timeelapsed) + " SECONDS", 30, WHITE, WIDTH/2, 400)
+                self.draw_text("TOTAL SCORE: " + str(self.timeelapsed+(self.player.score*2)), 30, WHITE, WIDTH/2, 450)
                 # removes all sprites to stop any updates while not visible
                 self.all_sprites.empty()
 

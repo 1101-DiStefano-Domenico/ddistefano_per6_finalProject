@@ -142,18 +142,27 @@ class Mob(pg.sprite.Sprite):
         self.image = pg.Surface((16, 16))
         self.image.fill(GREEN)
         self.rect = self.image.get_rect()
-        self.pos = vec(randint(25, WIDTH - 25), randint(25, HEIGHT - 25))
+        
+        # calculate a random angle, offset, and distance
+        distance = 1000
+        angle = random.uniform(0, 2 * math.pi)
+        offset = vec(math.cos(angle) * distance, math.sin(angle) * distance)
+        # adds the offset to the player's position to get the initial position of the mob
+        self.pos = self.game.player.pos + offset
+
         self.vel = vec(0, 0)
         self.acc = vec(0, 0)
         self.rect.center = self.pos
         self.steer = vec(0, 0)
 
+    # method for seeking player
     def seek(self, target):
         self.desired = (target - self.pos).normalize() * MAX_MOBSPEED
         self.steer = (self.desired - self.vel)
         if self.steer.length() > MAX_MOBFORCE:
             self.steer.scale_to_length(MAX_MOBFORCE)
 
+    # method that determines speed and steering ability
     def seek_with_approach(self, target):
         self.desired = (target - self.pos) * 0.1
         if self.desired.length() > MAX_MOBSPEED:
@@ -162,6 +171,7 @@ class Mob(pg.sprite.Sprite):
         if self.steer.length() > MAX_MOBFORCE:
             self.steer.scale_to_length(MAX_MOBFORCE)
 
+    # slows down or speeds up mob to more accurately follow player
     def seek_with_approach2(self, target):
         # more intelligent slowing
         desired = (target - self.pos)
@@ -176,6 +186,7 @@ class Mob(pg.sprite.Sprite):
             steer.scale_to_length(MAX_MOBFORCE)
         return steer
 
+    # method that moves mobs away from each other while still allowing them to somewhat overlap
     def separate(self):
         # move away from other mobs
         desired = vec(0, 0)
@@ -196,6 +207,7 @@ class Mob(pg.sprite.Sprite):
                 steer.scale_to_length(MAX_MOBFORCE)
         return steer
     
+    # method for player collision
     def player_collide(self):
         hits = pg.sprite.spritecollide(self, self.game.player1, False)
         if hits:
@@ -219,7 +231,7 @@ class Projectile(pg.sprite.Sprite):
     def __init__(self, game, direction):
         pg.sprite.Sprite.__init__(self)
         self.game = game
-        self.image = pg.Surface((10, 10))
+        self.image = pg.Surface((7, 7))
         self.image.fill(RED)
         self.rect = self.image.get_rect()
         self.pos = vec(self.game.player.rect.x + 25, self.game.player.rect.y + 25)
