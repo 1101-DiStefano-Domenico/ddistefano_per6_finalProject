@@ -144,7 +144,7 @@ class Mob(pg.sprite.Sprite):
         self.rect = self.image.get_rect()
         
         # calculate a random angle, offset, and distance
-        distance = 1000
+        distance = 1200
         angle = random.uniform(0, 2 * math.pi)
         offset = vec(math.cos(angle) * distance, math.sin(angle) * distance)
         # adds the offset to the player's position to get the initial position of the mob
@@ -227,27 +227,32 @@ class Mob(pg.sprite.Sprite):
         self.pos += self.vel
         self.rect.center = self.pos
 
+# projectile class
 class Projectile(pg.sprite.Sprite):
     def __init__(self, game, direction):
         pg.sprite.Sprite.__init__(self)
+        # allowing the projectile to access the game instance
         self.game = game
         self.image = pg.Surface((7, 7))
         self.image.fill(RED)
         self.rect = self.image.get_rect()
+        # initialized to a vector with x and y coordinates based on the player's position plus an offset of (25, 25).
         self.pos = vec(self.game.player.rect.x + 25, self.game.player.rect.y + 25)
         self.vel = vec(0, 0)
         self.acc = vec(0, 0)
         self.rect.center = self.pos
-        self.steer = vec(0, 0)
         self.speed = MAX_BULLETSPEED
         self.direction = direction
-
+    
     def update(self):
+        # checks if the velocity of the projectile is zero
         if self.vel.length() == 0:
             targetx, targety = self.direction
             distance_x = targetx - self.rect.x
             distance_y = targety - self.rect.y
+            # calculates the angle between the current position of the projectile and the target position (player)
             angle = atan2(distance_y, distance_x)
+            # multiplying the speed with the cosine and sine of the angle
             speed_x = self.speed * cos(angle)
             speed_y = self.speed * sin(angle)
             self.vel = vec(speed_x, speed_y)
@@ -274,6 +279,7 @@ class Button(Sprite):
         # self.mousecollide()
         self.rect.center = self.pos
 
+# particle class
 class Particle(Sprite):
     def __init__(self, x, y, w, h, color):
         Sprite.__init__(self)
@@ -289,9 +295,11 @@ class Particle(Sprite):
         self.countdown = Cooldown()
         self.countdown.event_time = floor(pg.time.get_ticks()/1000)
     def update(self):
+        # starts timer and applies speed values to x and y
         self.countdown.ticking()
         self.rect.x += self.speedx
         self.rect.y += self.speedy+GRAVITY
         self.pos = (self.rect.x, self.rect.y)
+        # removes particle after one second
         if self.countdown.delta > 1:
             self.kill()

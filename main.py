@@ -6,7 +6,7 @@ Goals, Rules, Feedback, Freedom
 Sources:
 https://stackoverflow.com/questions/41348333/how-to-freeze-a-sprite-for-a-certain-amount-of-time-in-pygame
 https://stackoverflow.com/questions/30720665/countdown-timer-in-pygame
-Mr. Cozort for pathing and particles
+Mr. Cozort & Kids Can Code for pathing and particles
 https://www.youtube.com/watch?v=g1jo_qsO5c4&ab_channel=KidsCanCode
 
 Goals:
@@ -22,7 +22,7 @@ Goal 9: particles ☑️
 Goal 10: animations and space themed pixel art
     - Player: UFO or Spaceship
     - Enemies: Aliens or UFOS
-    - Background: Space ☑️
+    - Background: Space ☑️  
 '''
 # import libraries
 import pygame as pg
@@ -46,10 +46,10 @@ class Cooldown():
         self.current_time = 0
         self.event_time = 0
         self.delta = 0
+    # method for tracking gameticks
     def ticking(self):
         self.current_time = floor((pg.time.get_ticks())/1000)
         self.delta = self.current_time - self.event_time
-        # print(self.delta)
     def reset(self):
         self.event_time = floor((pg.time.get_ticks())/1000)
     def timer(self):
@@ -247,6 +247,7 @@ class Game:
                 mouse_pos = pg.mouse.get_pos()
                 mouse_x = mouse_pos[0]
                 mouse_y = mouse_pos[1]
+                # cooldown between shots
                 if now - self.last_update > 100:
                     self.last_update = now
                     bullet = Projectile(self, (mouse_x, mouse_y))
@@ -347,7 +348,7 @@ class Game:
             self.draw_text("PRESS P TO PLAY", 40, WHITE, WIDTH/2, 330)
             self.draw_text("WASD TO MOVE", 30, WHITE, WIDTH/2, 420)
             self.draw_text("SPACE TO SHOOT", 30, WHITE, WIDTH/2, 450)
-            self.draw_text("KILL THE ALIENS TO REGAIN HP", 25, WHITE, WIDTH/2, 490)
+            self.draw_text("KILL THE ALIENS TO REPAIR YOUR SHIP", 25, WHITE, WIDTH/2, 490)
             self.draw_text("PRESS U TO UPGRADE", 25, WHITE, WIDTH/2, 510)
         elif self.startgame and self.player.hp > 0 and self.upgradescreen:
             if not self.teleport:
