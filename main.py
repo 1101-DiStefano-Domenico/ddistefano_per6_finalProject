@@ -346,7 +346,7 @@ class Game:
             self.screen.blit(self.background, (0, 0))
             self.draw_text("ALIEN SWARM", 100, GREEN, WIDTH/2, 250)
             self.draw_text("PRESS P TO PLAY", 40, WHITE, WIDTH/2, 330)
-            self.draw_text("WASD TO MOVE", 30, WHITE, WIDTH/2, 420)
+            self.draw_text("THE SHIP FOLLOWS THE MOUSE", 30, WHITE, WIDTH/2, 420)
             self.draw_text("SPACE TO SHOOT", 30, WHITE, WIDTH/2, 450)
             self.draw_text("KILL THE ALIENS TO REPAIR YOUR SHIP", 25, WHITE, WIDTH/2, 490)
             self.draw_text("PRESS U TO UPGRADE", 25, WHITE, WIDTH/2, 510)
